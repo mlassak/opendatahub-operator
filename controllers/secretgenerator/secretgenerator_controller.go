@@ -110,12 +110,16 @@ func (r *SecretGeneratorReconciler) Reconcile(ctx context.Context, request ctrl.
 	foundSecret := &corev1.Secret{}
 	err := r.Client.Get(ctx, request.NamespacedName, foundSecret)
 	if err != nil {
-		if k8serr.IsNotFound(err) {
-			// If Secret is deleted, delete OAuthClient if exists
-			err = r.deleteOAuthClient(ctx, request.Name)
+		if !k8serr.IsNotFound(err) {
+			return ctrl.Result{}, err
 		}
 
-		return ctrl.Result{}, err
+		log.Info("Secret not found", "secret", request.NamespacedName.Name)
+
+		// If Secret is deleted, delete OAuthClient if exists
+		if err = r.deleteOAuthClient(ctx, request.Name); err != nil {
+			return ctrl.Result{}, err
+		}
 	}
 
 	owner := []metav1.OwnerReference{
