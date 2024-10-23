@@ -116,6 +116,9 @@ func (r *SecretGeneratorReconciler) Reconcile(ctx context.Context, request ctrl.
 		if err != nil {
 			return ctrl.Result{}, err
 		}
+
+		// TODO initialize new secret creation somehow? or quit reconcile with error here?
+		// (otherwise fails later on missing annotations error during secret generation)
 	}
 
 	// Generate the secret if it does not previously exist
