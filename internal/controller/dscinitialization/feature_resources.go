@@ -7,7 +7,7 @@ import (
 )
 
 //go:embed resources
-var dsciEmbeddedFS embed.FS
+var DsciEmbeddedFS embed.FS
 
 const baseDir = "resources"
 
@@ -26,6 +26,6 @@ var Templates = struct {
 	ServiceMeshDir: path.Join(baseDir, "servicemesh"),
 	AuthorinoDir:   path.Join(baseDir, "authorino"),
 	MetricsDir:     path.Join(baseDir, "metrics-collection"),
-	Location:       dsciEmbeddedFS,
+	Location:       DsciEmbeddedFS,
 	BaseDir:        baseDir,
 }
