@@ -349,4 +349,10 @@ var (
 		Version: networkingv1.SchemeGroupVersion.Version,
 		Kind:    "NetworkPolicy",
 	}
+
+	ServiceMesh = schema.GroupVersionKind{
+		Group:   serviceApi.GroupVersion.Group,
+		Version: serviceApi.GroupVersion.Version,
+		Kind:    serviceApi.ServiceMeshKind,
+	}
 )
