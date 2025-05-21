@@ -2649,7 +2649,6 @@ _Appears in:_
 
 | Field | Description | Default | Validation |
 | --- | --- | --- | --- |
-| `managementState` _[ManagementState](#managementstate)_ |  | Removed | Enum: [Managed Unmanaged Removed] <br /> |
 | `controlPlane` _[ServiceMeshControlPlaneSpec](#servicemeshcontrolplanespec)_ | servicemesh spec exposed to DSCI api<br />ControlPlane holds configuration of Service Mesh used by Opendatahub. |  |  |
 | `auth` _[ServiceMeshAuthSpec](#servicemeshauthspec)_ | Auth holds configuration of authentication and authorization services<br />used by Service Mesh in Opendatahub. |  |  |
 

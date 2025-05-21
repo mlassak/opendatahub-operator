@@ -2,58 +2,68 @@ package servicemesh
 
 import (
 	"context"
+	"fmt"
 
-	"k8s.io/client-go/tools/record"
+	operatorv1 "github.com/openshift/api/operator/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
+	"github.com/opendatahub-io/opendatahub-operator/v2/api/common"
 	serviceApi "github.com/opendatahub-io/opendatahub-operator/v2/api/services/v1alpha1"
-	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/cluster"
+	sr "github.com/opendatahub-io/opendatahub-operator/v2/internal/controller/services/registry"
+	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/cluster/gvk"
+	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/actions/deploy"
+	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/actions/render/template"
+	"github.com/opendatahub-io/opendatahub-operator/v2/pkg/controller/reconciler"
 )
 
-type ServiceMeshReconciler struct {
-	Client   client.Client
-	Recorder record.EventRecorder
+//nolint:gochecknoinits
+func init() {
+	sr.Add(&serviceHandler{})
 }
 
-// SetupWithManager sets up the controller with the Manager.
-func (r *ServiceMeshReconciler) SetupWithManager(ctx context.Context, mgr ctrl.Manager) error {
-	logf.FromContext(ctx).Info("Adding controller for ServiceMesh.")
-
-	return ctrl.NewControllerManagedBy(mgr).
-		Named("servicemesh-controller").
-		For(&serviceApi.ServiceMesh{}).
-		Complete(r)
+type serviceHandler struct {
 }
 
-func (r *ServiceMeshReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := logf.FromContext(ctx)
-	log.Info("Reconciling ServiceMesh controller")
+func (h *serviceHandler) Init(_ common.Platform) error {
+	return nil
+}
 
-	sm := &serviceApi.ServiceMesh{}
-	if err := r.Client.Get(ctx, req.NamespacedName, sm); err != nil {
-		return ctrl.Result{}, client.IgnoreNotFound(err)
-	}
+func (h *serviceHandler) GetName() string {
+	return ServiceName
+}
 
-	dsci, err := cluster.GetDSCI(ctx, r.Client)
+func (h *serviceHandler) GetManagementState(_ common.Platform) operatorv1.ManagementState {
+	return operatorv1.Managed
+}
+
+func (h *serviceHandler) NewReconciler(ctx context.Context, mgr ctrl.Manager) error {
+	_, err := reconciler.ReconcilerFor(mgr, &serviceApi.ServiceMesh{}).
+		OwnsGVK(gvk.ServiceMeshControlPlane).
+		OwnsGVK(gvk.ServiceMeshMember).
+		OwnsGVK(gvk.PodMonitor).
+		OwnsGVK(gvk.ServiceMonitor).
+		OwnsGVK(gvk.Authorino).
+		// TODO check those ownerships above
+		WithAction(checkPreconditions).
+		WithAction(createControlPlaneNamespace).
+		WithAction(initializeServiceMesh).
+		WithAction(initializeServiceMeshMetricsCollection).
+		WithAction(initializeAuthorino).
+		WithAction(template.NewAction(
+			template.WithCache(),
+			template.WithDataFn(getTemplateData),
+		)).
+		WithAction(updateMeshRefsConfigMap).
+		WithAction(updateAuthRefsConfigMap).
+		WithAction(deploy.NewAction(
+			deploy.WithCache(),
+		)).
+		WithAction(updateStatus).
+		Build(ctx)
+
 	if err != nil {
-		return ctrl.Result{}, err
+		return fmt.Errorf("could not create ServiceMesh controller: %w", err)
 	}
 
-	if !sm.DeletionTimestamp.IsZero() {
-		// ServiceMesh instance is being deleted
-		if err := r.removeServiceMesh(ctx, dsci); err != nil {
-			return ctrl.Result{}, err
-		}
-
-		return ctrl.Result{}, err
-	}
-
-	// Apply Service Mesh configurations
-	if err := r.configureServiceMesh(ctx, dsci); err != nil {
-		return ctrl.Result{}, err
-	}
-
-	return ctrl.Result{}, nil
+	return nil
 }

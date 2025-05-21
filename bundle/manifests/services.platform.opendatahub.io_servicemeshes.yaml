@@ -105,14 +105,6 @@ spec:
                     pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?)?$
                     type: string
                 type: object
-              managementState:
-                default: Removed
-                enum:
-                - Managed
-                - Unmanaged
-                - Removed
-                pattern: ^(Managed|Unmanaged|Force|Removed)$
-                type: string
             type: object
           status:
             description: ServiceMeshStatus defines the observed state of ServiceMesh

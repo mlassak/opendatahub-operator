@@ -18,7 +18,6 @@ package v1alpha1
 
 import (
 	"github.com/opendatahub-io/opendatahub-operator/v2/api/common"
-	operatorv1 "github.com/openshift/api/operator/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -34,9 +33,6 @@ const (
 var _ common.PlatformObject = (*ServiceMesh)(nil)
 
 type ServiceMeshSpec struct {
-	// +kubebuilder:validation:Enum=Managed;Unmanaged;Removed
-	// +kubebuilder:default=Removed
-	ManagementState operatorv1.ManagementState `json:"managementState,omitempty"`
 	// servicemesh spec exposed to DSCI api
 	// ControlPlane holds configuration of Service Mesh used by Opendatahub.
 	ControlPlane ServiceMeshControlPlaneSpec `json:"controlPlane,omitempty"`

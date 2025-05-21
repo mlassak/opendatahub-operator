@@ -23,6 +23,7 @@ import (
 	"os"
 	"strings"
 
+	authorinov1beta1 "github.com/kuadrant/authorino-operator/api/v1beta1"
 	ocappsv1 "github.com/openshift/api/apps/v1" //nolint:importas //reason: conflicts with appsv1 "k8s.io/api/apps/v1"
 	buildv1 "github.com/openshift/api/build/v1"
 	configv1 "github.com/openshift/api/config/v1"
@@ -134,6 +135,7 @@ func init() { //nolint:gochecknoinits
 	utilruntime.Must(consolev1.AddToScheme(scheme))
 	utilruntime.Must(securityv1.Install(scheme))
 	utilruntime.Must(templatev1.Install(scheme))
+	utilruntime.Must(authorinov1beta1.AddToScheme(scheme))
 }
 
 func initComponents(_ context.Context, p common.Platform) error {
@@ -305,6 +307,13 @@ func main() { //nolint:funlen,maintidx,gocyclo
 			},
 			&rbacv1.RoleBinding{}: {
 				Namespaces: oDHCache,
+			},
+			// TODO fix, this is not working as intended - still getting:
+			// 'provisioning failed: failed to lookup object opendatahub-auth-provider/authorino:
+			//  unable to get: opendatahub-auth-provider/authorino because of unknown namespace for the cache'
+			// from servicemesh controller
+			&authorinov1beta1.Authorino{}: {
+				Namespaces: map[string]cache.Config{"": {}},
 			},
 		},
 		DefaultTransform: func(in any) (any, error) {
