@@ -1,6 +1,6 @@
-name: Integration tests
+name: Integration tests - build images
 on:
-  pull_request_target:
+  pull_request:
     paths-ignore:
       - 'docs/**'
       - '.github/**'
@@ -14,8 +14,8 @@ env:
   IMAGE_TAG_BASE: quay.io/${{ secrets.QUAY_ORG }}/opendatahub-operator
   TAG: pr-${{ github.event.number }}
 jobs:
-  create-catalog-image:
-    name: Build and push catalog image
+  validate-and-build:
+    name: Validate user and build images
     runs-on: ubuntu-latest
     env:
       IMAGE_BUILDER: podman
@@ -23,7 +23,9 @@ jobs:
       - name: Checkout PR head
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: '0'
+
       - name: Verify PR author and fork repo
         env:
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
@@ -33,27 +35,17 @@ jobs:
           set -e
           python ./.github/scripts/verify_pr_author.py
 
-      - name: Quay.io login
-        uses: redhat-actions/podman-login@v1
-        env:
-          QUAY_ID: ${{ secrets.QUAY_ID }}
-          QUAY_TOKEN: ${{ secrets.QUAY_TOKEN }}
-        with:
-          registry: quay.io
-          username: ${{ env.QUAY_ID }}
-          password: ${{ env.QUAY_TOKEN }}
-
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
 
-      - name: Create operator image
+      - name: Build operator image
         env:
           IMG: ${{ env.IMAGE_TAG_BASE }}:${{ env.TAG }}
         run:
-          make image
-      
+          make image-build
+
       - name: Get latest release version
         env:
           OPERATOR_REPOSITORY_NAME: opendatahub-io/opendatahub-operator
@@ -61,17 +53,38 @@ jobs:
           version_tag=$(curl -s https://api.github.com/repos/${OPERATOR_REPOSITORY_NAME}/releases/latest | jq -r .tag_name)-${{ env.TAG }}
           echo "VERSION_TAG=$version_tag" >> $GITHUB_ENV
 
-      - name: Create bundle image
+      - name: Build bundle image
         env:
           BUNDLE_IMG: ${{ env.IMAGE_TAG_BASE }}-bundle:${VERSION_TAG}
-        run: |
+        run:
           make bundle-build
-          make bundle-push
 
-      - name: Create catalog image
+      - name: Podman save
         env:
-          CATALOG_IMG: ${{ env.IMAGE_TAG_BASE }}-catalog:${VERSION_TAG}
+          IMG: ${{ env.IMAGE_TAG_BASE }}:${{ env.TAG }}
           BUNDLE_IMG: ${{ env.IMAGE_TAG_BASE }}-bundle:${VERSION_TAG}
+        run:
+          podman save --output operator_images ${{ env.IMG }} ${{ env.BUNDLE_IMG }}
+
+      - name: Upload images as artifact
+        id: operator-images-artifact-upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: operator-images
+          path: |
+            ./operator_images
+          retention-days: 1
+
+      - name: Save tag variables
         run: |
-          make catalog-build 
-          make catalog-push
+          echo $TAG >> tag_vars.txt
+          echo $VERSION_TAG >> tag_vars.txt
+
+      - name: Upload tag variables as artifact
+        id: tag-vars-artifact-upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: tag-vars
+          path: |
+            ./tag_vars.txt
+          retention-days: 1
