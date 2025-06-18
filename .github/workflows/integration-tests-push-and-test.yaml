@@ -74,6 +74,7 @@ jobs:
       - name: Load tag variables
         run: |
           echo "VERSION_TAG=$(sed -n '1p' tag_vars.txt)" >> $GITHUB_ENV
+          echo "TAG=$(sed -n '2p' tag_vars.txt)" >> $GITHUB_ENV
 
       - name: Checkout
         uses: actions/checkout@v4
@@ -90,22 +91,25 @@ jobs:
 
       - name: Push operator image
         env:
-          IMG: ${{ env.IMAGE_TAG_BASE }}:${VERSION_TAG}
+          IMG: ${{ env.IMAGE_TAG_BASE }}:v${VERSION_TAG}
         run: |
           make image-push IMG=${{ env.IMG }}
 
       - name: Push bundle image
         env:
+          IMG_TAG: v${VERSION_TAG}
           VERSION: ${VERSION_TAG}
-          IMG_TAG: ${VERSION_TAG}
+          BUNDLE_IMG: ${{ env.IMAGE_TAG_BASE }}-bundle:v${VERSION_TAG}
         run: |
-          make bundle-push VERSION=${{ env.VERSION }} IMG_TAG=${{ env.IMG_TAG }}
+          make bundle-push IMG_TAG=${{ env.IMG_TAG }} VERSION=${{ env.VERSION }} BUNDLE_IMG=${{ env.BUNDLE_IMG }}
 
       - name: Build and push catalog image
         env:
-          VERSION: ${VERSION_TAG}
           IMG_TAG: ${VERSION_TAG}
+          VERSION: ${VERSION_TAG}
+          BUNDLE_IMG: ${{ env.IMAGE_TAG_BASE }}-bundle:${VERSION_TAG}
+          CATALOG_IMG: ${{ env.IMAGE_TAG_BASE }}-catalog:${TAG}
         run: |
-          make catalog-build VERSION=${{ env.VERSION }} IMG_TAG=${{ env.IMG_TAG }}
-          make catalog-push VERSION=${{ env.VERSION }} IMG_TAG=${{ env.IMG_TAG }}
+          make catalog-build CATALOG_IMG=${{ env.CATALOG_IMG }} BUNDLE_IMGS=${{ env.BUNDLE_IMG }}
+          make catalog-push CATALOG_IMG=${{ env.CATALOG_IMG }} BUNDLE_IMGS=${{ env.BUNDLE_IMG }}
           
