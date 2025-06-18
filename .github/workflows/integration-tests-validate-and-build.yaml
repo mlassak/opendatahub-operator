@@ -13,6 +13,7 @@ on:
 env:
   IMAGE_TAG_BASE: quay.io/${{ secrets.QUAY_ORG }}/opendatahub-operator
   PR_NUMBER: ${{ github.event.number }}
+  TAG: pr-${{ github.event.number }}
 jobs:
   validate-and-build:
     name: Validate user and build images
@@ -45,25 +46,25 @@ jobs:
           OPERATOR_REPOSITORY_NAME: opendatahub-io/opendatahub-operator
         run: |
           version_tag=$(curl -s https://api.github.com/repos/${OPERATOR_REPOSITORY_NAME}/releases/latest | jq -r .tag_name)
-          trimmed_version_tag=$(echo $version_tag | sed 's/\(.*\)\..*/\1/')
-          echo "VERSION_TAG=${trimmed_version_tag:1}.${{ env.PR_NUMBER }}" >> $GITHUB_ENV
+          echo "VERSION_TAG=${version_tag:1}-${{ env.TAG }}" >> $GITHUB_ENV
 
       - name: Build operator image
         env:
-          IMG: ${{ env.IMAGE_TAG_BASE }}:${VERSION_TAG}
+          IMG: ${{ env.IMAGE_TAG_BASE }}:v${VERSION_TAG}
         run:
-          make image-build IMG=${{ env.IMG }}
+          make image-build IMG=${{ env.IMG }} -e CGO_ENABLED=0
 
       - name: Build bundle image
         env:
+          IMG_TAG: v${VERSION_TAG}
           VERSION: ${VERSION_TAG}
-          IMG_TAG: ${VERSION_TAG}
+          BUNDLE_IMG: ${{ env.IMAGE_TAG_BASE }}-bundle:v${VERSION_TAG}
         run:
-          make bundle-build VERSION=${{ env.VERSION }} IMG_TAG=${{ env.IMG_TAG }}
+          make bundle-build IMG_TAG=${{ env.IMG_TAG }} VERSION=${{ env.VERSION }} BUNDLE_IMG=${{ env.BUNDLE_IMG }}
 
       - name: Podman save
         env:
-          IMG: ${{ env.IMAGE_TAG_BASE }}:${VERSION_TAG}
+          IMG: ${{ env.IMAGE_TAG_BASE }}:v${VERSION_TAG}
           BUNDLE_IMG: ${{ env.IMAGE_TAG_BASE }}-bundle:v${VERSION_TAG}
         run:
           podman save --output operator_images ${{ env.IMG }} ${{ env.BUNDLE_IMG }}
@@ -80,6 +81,7 @@ jobs:
       - name: Save tag variables
         run: |
           echo $VERSION_TAG >> tag_vars.txt
+          echo $TAG >> tag_vars.txt
 
       - name: Upload tag variables as artifact
         id: tag-vars-artifact-upload
