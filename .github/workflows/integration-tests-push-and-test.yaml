@@ -96,16 +96,15 @@ jobs:
 
       - name: Push bundle image
         env:
-          VERSION: ${VERSION_TAG}
-          IMG_TAG: ${VERSION_TAG}
+          BUNDLE_IMG: ${{ env.IMAGE_TAG_BASE }}-bundle:${VERSION_TAG}
         run: |
-          make bundle-push VERSION=${{ env.VERSION }} IMG_TAG=${{ env.IMG_TAG }}
+          make bundle-push
 
       - name: Build and push catalog image
         env:
-          VERSION: ${VERSION_TAG}
-          IMG_TAG: ${VERSION_TAG}
+          BUNDLE_IMG: ${{ env.IMAGE_TAG_BASE }}-bundle:${VERSION_TAG}
+          CATALOG_IMG: ${{ env.IMAGE_TAG_BASE }}-catalog:${VERSION_TAG}
         run: |
-          make catalog-build VERSION=${{ env.VERSION }} IMG_TAG=${{ env.IMG_TAG }}
-          make catalog-push VERSION=${{ env.VERSION }} IMG_TAG=${{ env.IMG_TAG }}
+          make catalog-build
+          make catalog-push
           

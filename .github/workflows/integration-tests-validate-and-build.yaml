@@ -56,15 +56,14 @@ jobs:
 
       - name: Build bundle image
         env:
-          VERSION: ${VERSION_TAG}
-          IMG_TAG: ${VERSION_TAG}
+          BUNDLE_IMG: ${{ env.IMAGE_TAG_BASE }}-bundle:${VERSION_TAG}
         run:
-          make bundle-build VERSION=${{ env.VERSION }} IMG_TAG=${{ env.IMG_TAG }}
+          make bundle-build
 
       - name: Podman save
         env:
           IMG: ${{ env.IMAGE_TAG_BASE }}:${VERSION_TAG}
-          BUNDLE_IMG: ${{ env.IMAGE_TAG_BASE }}-bundle:v${VERSION_TAG}
+          BUNDLE_IMG: ${{ env.IMAGE_TAG_BASE }}-bundle:${VERSION_TAG}
         run:
           podman save --output operator_images ${{ env.IMG }} ${{ env.BUNDLE_IMG }}
 
