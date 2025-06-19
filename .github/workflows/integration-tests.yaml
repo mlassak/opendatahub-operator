@@ -84,3 +84,14 @@ jobs:
           echo "version tag: ${VERSION_TAG}"
           make catalog-build 
           make catalog-push
+
+      - name: Trigger webhook to run tests
+        if: needs.get-merge-commit.outputs.mergedSha
+        uses: distributhor/workflow-webhook@v3
+        env:
+          CATALOG_IMG: ${{ env.IMAGE_TAG_BASE }}-catalog:${{ env.PR_NUMBER }}
+        with:
+          webhook_url: ${{ secrets.WEBHOOK_URL }}
+          webhook_secret: ${{ secrets.WEBHOOK_SECRET }}
+          data: '{ "pr_number": "${{ env.PR_NUMBER }}", "catalog_img" : "${{ env.CATALOG_IMG }}" }'
+
