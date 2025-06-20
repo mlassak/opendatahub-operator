@@ -84,3 +84,10 @@ jobs:
           echo "version tag: ${VERSION_TAG}"
           make catalog-build 
           make catalog-push
+
+      - name: Send Webhook Request
+        uses: distributhor/workflow-webhook@v3
+        with:
+          webhook_url: ${{ secrets.WEBHOOK_URL }}
+          webhook_secret: ${{ secrets.WEBHOOK_SECRET }}
+          data: ${{ toJSON(github.event) }}
