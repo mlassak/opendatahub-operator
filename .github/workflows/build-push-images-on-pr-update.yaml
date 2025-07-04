@@ -1,0 +1,20 @@
+name: Build and push operator images upon PR update
+on:
+  pull_request_target:
+    types: [ opened, synchronize, reopened ]
+    paths:
+      - 'bundle/**'
+      - 'cmd/**'
+      - 'config/**'
+      - 'Dockerfiles/**'
+      - 'internal/**'
+      - 'pkg/**'
+      - 'cmd/main.go'
+
+permissions: { }
+
+jobs:
+  build-and-push-images:
+    steps:
+      - name: Build and push operator images
+        uses: ./.github/workflows/utils/image-build-push.yaml
