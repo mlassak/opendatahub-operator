@@ -60,6 +60,8 @@ func dscManagementTestSuite(t *testing.T) {
 		TestContext: tc,
 	}
 
+	fooTest()
+
 	// Define test cases.
 	testCases := []TestCase{
 		{"Ensure Service Mesh , Serverless and Observability operators are installed", dscTestCtx.ValidateOperatorsInstallation},
@@ -95,6 +97,10 @@ func dscManagementTestSuite(t *testing.T) {
 
 	// Run the test suite.
 	RunTestCases(t, testCases)
+}
+
+func fooTest() {
+	fmt.Println("I'm a test function that is totally not a placeholder either")
 }
 
 // ValidateOperatorsInstallation ensures the Service Mesh and Serverless operators are installed.
