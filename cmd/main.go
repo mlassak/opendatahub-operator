@@ -318,6 +318,7 @@ func main() { //nolint:funlen,maintidx,gocyclo
 
 			return in, nil
 		},
+		// test comment
 	}
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{ // single pod does not need to have LeaderElection
