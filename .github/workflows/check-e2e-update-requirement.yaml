@@ -71,8 +71,7 @@ jobs:
             You have checked the "Skip requirement to update E2E test suite for this PR" checkbox, but no justification comment by the PR author was found.
             
             **Action required from the PR author:** Please add a comment to this PR explaining why e2e tests are not needed for this change.
-            
-            The justification comment is required to start with '## E2E update requirement opt-out justification:' title, and include a short summary of reasons for opting-out of this requirement.`
+            - the skip justification comment is **required** to start with \`## E2E update requirement opt-out justification:\` title, and include a short summary of reasons for opting-out of this requirement.`
                 });
                 
                 core.setFailed('❌ FAILURE: PR author opted-out of the E2E test suite update requirement, but no justification comment was found');
@@ -117,13 +116,14 @@ jobs:
             
             No e2e tests were updated as part of this PR.
             
-            **Action required:** Please either:
+            **Action required from the PR author:** Please either:
             1. Add or update relevant e2e tests in the \`tests/e2e/\` directory, OR
-            2. Check the "Skip requirement to update E2E test suite" checkbox in the PR template and provide a justification comment explaining why e2e tests are not needed for this change.
+            2. Check the "Skip requirement to update E2E test suite" checkbox in the PR template and provide a justification comment explaining why e2e tests are not needed for this change
+              - the skip justification comment is required to start with \`## E2E update requirement opt-out justification:\` title, and include a short summary of reasons for opting-out of this requirement
             
-            The justification comment is required to start with '## E2E update requirement opt-out justification:' title, and include a short summary of reasons for opting-out of this requirement.
-            
-            **Why this check exists:** E2E tests help ensure that changes work correctly in a real environment and don't break existing functionality. Every code-related PR should include an extension/update to the E2E test suite to cover the new changes.`
+            **Why this check exists:** E2E tests help ensure that changes work correctly in a real environment and don't break existing functionality.
+            By default, every code-related PR should include an extension/update to the E2E test suite to cover the new changes.
+            If the PR author is in doubt whether this requirement is applicable for their PR, please refer to the PR template for guidance about appropriate/inappropriate cases for opting-out.`
                 });
                 
                 core.setFailed('❌ FAILURE: No e2e tests updated and skip checkbox not checked');

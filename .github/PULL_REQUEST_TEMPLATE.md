@@ -36,23 +36,23 @@ To opt-out of this requirement:
 1. Inspect the opt-out guidelines rules in the sections below
   - to determine if the nature of the PR changes allows for skipping this requirement
 2. Create opt-out justification PR comment
-  - start the comment with '## E2E update requirement opt-out justification:' title, and provide a short summary of reasons for opting-out of this requirement
+  - start the comment with `## E2E update requirement opt-out justification:` title, and provide a short summary of reasons for opting-out of this requirement
 3. Edit PR description to check the checkbox below: 
 
 - [ ] Skip requirement to update E2E test suite for this PR
 
-#### Appropriate cases for E2E test suite update opt-out:
+#### Appropriate cases for opting-out of the E2E test suite update requirement:
 
 - Documentation-only changes (README, comments, etc.)
 - Unit test additions/modifications without functional changes
 - Code style/formatting changes
 - Dependency version updates without functional impact
-- Build system changes that don't affect runtime behavior
+- Build system changes that do not affect runtime behavior
 - Non-functional refactoring with existing test coverage
 
-#### NOT Appropriate cases for E2E test suite update opt-out:
+#### NOT Appropriate cases for opting-out of E2E test suite update requirement:
 
-- New feature implementations
+- New feature implementation
 - Bug fixes affecting user-facing functionality
 - API changes or modifications
 - Configuration changes affecting deployment
