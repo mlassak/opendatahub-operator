@@ -30,32 +30,11 @@ Please complete the following sections for a smooth review.
 
 ### E2E test suite update requirement
 
-When bringing new changes to the operator code, such changes are by default required to be accompanied by extending and/or updating the E2E test suite accordingly. A GitHub Action check is in place to enforce this requirement.
+When bringing new changes to the operator code, such changes are by default required to be accompanied by extending and/or updating the E2E test suite accordingly.
 
 To opt-out of this requirement:
-1. Inspect the opt-out guidelines rules in the sections below
-  - to determine if the nature of the PR changes allows for skipping this requirement
+1. **Inspect the [opt-out guidelines](../docs/e2e-update-requirement-guidlines.md)**, to determine if the nature of the PR changes allows for skipping this requirement
 2. Create opt-out justification PR comment
   - start the comment with `## E2E update requirement opt-out justification:` title, and provide a short summary of reasons for opting-out of this requirement
-3. Edit PR description to check the checkbox below: 
-
+3. Edit this PR description to check the checkbox below:
 - [ ] Skip requirement to update E2E test suite for this PR
-
-#### Appropriate cases for opting-out of the E2E test suite update requirement:
-
-- Documentation-only changes (README, comments, etc.)
-- Unit test additions/modifications without functional changes
-- Code style/formatting changes
-- Dependency version updates without functional impact
-- Build system changes that do not affect runtime behavior
-- Non-functional refactoring with existing test coverage
-
-#### NOT Appropriate cases for opting-out of E2E test suite update requirement:
-
-- New feature implementation
-- Bug fixes affecting user-facing functionality
-- API changes or modifications
-- Configuration changes affecting deployment
-- Changes to controllers, operators, or core logic
-- Cross-component integration modifications
-- Changes affecting user workflows or UI
