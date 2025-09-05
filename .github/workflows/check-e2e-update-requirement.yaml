@@ -16,8 +16,8 @@ permissions:
   issues: read
 
 jobs:
-  check-e2e-requirement:
-    name: Check e2e test requirement
+  check-e2e-update-requirement:
+    name: Check requirement to update E2E test suite
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -26,7 +26,7 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
 
-      - name: Check e2e requirement
+      - name: Check requirement to update E2E test suite
         uses: actions/github-script@v7
         with:
           script: |
@@ -61,16 +61,15 @@ jobs:
               
               if (authorComments.length === 0) {
                 // No justification comment from the PR author found
-                // Check if bot already posted a comment about this
+                // Check if bot already posted a comment about this, to prevent duplicate comments
                 const botComments = comments.filter(comment => 
                   comment.user.type === 'Bot' && 
                   comment.body.includes('E2E test suite update requirement Check Failed') &&
-                  comment.body.includes('justification comment was found')
+                  comment.body.includes('no justification comment by the PR author was found')
                 );
                 
                 if (botComments.length === 0) {
-                  // No justification comment found
-                  // and the bot hasn't posted about it yet => post a comment
+                  // bot hasn't posted about it yet => have it post a comment
                   await github.rest.issues.createComment({
                     owner,
                     repo,
@@ -85,15 +84,16 @@ jobs:
                   });
                 }
                 
-                core.setFailed('❌ Skip requirement to update E2E test suite for this PR is checked, but no justification comment found');
+                core.setFailed('❌ FAILURE: PR author opted-out of the E2E test suite update requirement, but no justification comment was found');
                 return;
               } else {
                 console.log(`Found justification comment from PR author`);
-                console.log('✅ Skip requirement to update E2E test suite for this PR has been validated with justification');
+                console.log('✅ SUCCESS: PR author opted-out of the E2E test suite update requirement and provided a justification comment');
               }
             } else {
-              // If skip checkbox is not checked, verify e2e tests were updated
-              console.log('Skip requirement to update E2E test suite checkbox is not checked, checking for e2e test updates...');
+              // skip e2e update requirement checkbox is not checked
+              // => verify e2e tests were updated
+              console.log('Requirement to update E2E test suite was is not set to be skipped, checking for e2e test updates in the PR...');
               
               const { data: files } = await github.rest.pulls.listFiles({
                 owner,
@@ -111,7 +111,7 @@ jobs:
               console.log('Modified files:', files.map(f => f.filename).join(', '));
               
               if (!e2eFilesModified) {
-                // Check if we already posted a comment about missing e2e tests
+                // Check if bot already posted a comment about missing e2e tests
                 const { data: comments } = await github.rest.issues.listComments({
                   owner,
                   repo,
@@ -125,7 +125,7 @@ jobs:
                 );
                 
                 if (botComments.length === 0) {
-                  // No e2e tests updated and we haven't posted about it yet
+                  // No e2e tests updated and bot hasn't posted about it yet
                   await github.rest.issues.createComment({
                     owner,
                     repo,
@@ -136,9 +136,11 @@ jobs:
             
             **Action required:** Please either:
             1. Add or update relevant e2e tests in the \`tests/e2e/\` directory, OR
-            2. Check the "Skip requirement to update E2E test suite" checkbox in the PR template and provide a justification comment explaining why e2e tests are not needed for this change. The justification comment is required to start with '## E2E update requirement opt-out justification:' title, and include a short summary of reasons for opting-out of this requirement.
+            2. Check the "Skip requirement to update E2E test suite" checkbox in the PR template and provide a justification comment explaining why e2e tests are not needed for this change.
             
-            **Why this check exists:** E2E tests help ensure that changes work correctly in a real environment and don't break existing functionality.`
+            The justification comment is required to start with '## E2E update requirement opt-out justification:' title, and include a short summary of reasons for opting-out of this requirement.
+            
+            **Why this check exists:** E2E tests help ensure that changes work correctly in a real environment and don't break existing functionality. Every code-related PR should include an extension/update to the E2E test suite to cover the new changes.`
                   });
                 }
                 
