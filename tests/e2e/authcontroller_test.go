@@ -38,6 +38,8 @@ const (
 	adminGroupClusterRoleBindingName = "admingroupcluster-rolebinding"
 )
 
+// test comment
+
 type AuthControllerTestCtx struct {
 	*TestContext
 	AuthNamespacedName types.NamespacedName
