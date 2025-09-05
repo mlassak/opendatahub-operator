@@ -365,6 +365,7 @@ func main() { //nolint:funlen,maintidx,gocyclo
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
+	// test comment
 
 	// Register all webhooks using the helper
 	if err := webhook.RegisterAllWebhooks(mgr); err != nil {
