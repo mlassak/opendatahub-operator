@@ -53,14 +53,15 @@ jobs:
                 issue_number: prNumber,
               });
               
-              // Look for a comment from the PR author that contains justification keywords
+              // Look for a comment from the PR author that contains justification
               const authorComments = comments.filter(comment => 
                 comment.user.login === pr.user.login &&
-                (comment.body.toLowerCase().includes('E2E update requirement opt-out justification:'))
+                (comment.body.includes('## E2E update requirement opt-out justification:'))
               );
               
               if (authorComments.length === 0) {
-                // Check if we already posted a comment about this
+                // No justification comment from the PR author found
+                // Check if bot already posted a comment about this
                 const botComments = comments.filter(comment => 
                   comment.user.type === 'Bot' && 
                   comment.body.includes('E2E test suite update requirement Check Failed') &&
@@ -80,7 +81,7 @@ jobs:
             
             **Action required from the PR author:** Please add a comment to this PR explaining why e2e tests are not needed for this change.
             
-            The justification comment is required to start with 'E2E update requirement opt-out justification:', and include a short summary of reasons for opting-out of this requirement.`
+            The justification comment is required to start with '## E2E update requirement opt-out justification:' title, and include a short summary of reasons for opting-out of this requirement.`
                   });
                 }
                 
@@ -135,7 +136,7 @@ jobs:
             
             **Action required:** Please either:
             1. Add or update relevant e2e tests in the \`tests/e2e/\` directory, OR
-            2. Check the "Skip requirement to update E2E test suite" checkbox in the PR template and provide a justification comment explaining why e2e tests are not needed for this change.
+            2. Check the "Skip requirement to update E2E test suite" checkbox in the PR template and provide a justification comment explaining why e2e tests are not needed for this change. The justification comment is required to start with '## E2E update requirement opt-out justification:' title, and include a short summary of reasons for opting-out of this requirement.
             
             **Why this check exists:** E2E tests help ensure that changes work correctly in a real environment and don't break existing functionality.`
                   });
