@@ -191,6 +191,8 @@ func (tc *AuthControllerTestCtx) ValidateAddingGroups(t *testing.T) {
 		),
 	)
 
+	// test comment
+
 	// Helper function to validate the role and cluster role bindings.
 	validateBinding := func(gvk schema.GroupVersionKind, bindingName, groupName string) {
 		tc.EnsureResourceExists(
