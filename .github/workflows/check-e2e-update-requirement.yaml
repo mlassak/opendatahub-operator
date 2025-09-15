@@ -59,34 +59,67 @@ jobs:
             };
             
             if (skipE2eChecked) {
-              console.log('Skip e2e checkbox is checked, looking for justification comment...');
+              console.log('Skip e2e checkbox is checked, looking for justification in PR description and comments...');
               
-              const { data: comments } = await github.rest.issues.listComments({
-                owner,
-                repo,
-                issue_number: prNumber,
-              });
+              const validateJustification = (text, titleLevel) => {
+                // Create regex for the specific title level (#### is used in PR description, ## is used in comments)
+                const titleRegex = new RegExp(`^\\s*${titleLevel}\\s*E2E update requirement opt-out justification:\\s*$`, 'im');
+                const titleMatch = text.match(titleRegex);
+                
+                if (!titleMatch) {
+                  return false;
+                }
+                
+                // Get the justification content below the title
+                const titleIndex = titleMatch.index + titleMatch[0].length;
+                const contentAfterTitle = text.substring(titleIndex).trim();
+                
+                // Check if there's a non-empty justification comment - ignoring whitespace, HTML comments, and empty lines
+                const justificationComment = contentAfterTitle
+                  .replace(/<!--[\s\S]*?-->/g, '')
+                  .replace(/^\s*$/gm, '')
+                  .trim();
+                
+                return justificationComment.length > 0;
+              };
               
-              // Look for a comment from the PR author that contains justification
-              const authorComments = comments.filter(comment => 
-                comment.user.login === pr.user.login &&
-                (comment.body.includes('## E2E update requirement opt-out justification:'))
-              );
+              // Check if justification is provided in PR description
+              const prDescriptionHasJustification = validateJustification(prBody, '####');
+              console.log(`Justification found in PR description: ${prDescriptionHasJustification}`);
               
-              if (authorComments.length === 0) {
-                console.log('❌ FAILURE: PR author opted-out of the E2E test suite update requirement, but no justification comment was found');
+              let justificationFound = prDescriptionHasJustification;
+              
+              // If justification was not found in PR description, check for justification comment
+              if (!justificationFound) {
+                const { data: comments } = await github.rest.issues.listComments({
+                  owner,
+                  repo,
+                  issue_number: prNumber,
+                });
+                
+                const authorComments = comments.filter(comment => 
+                  comment.user.login === pr.user.login &&
+                  validateJustification(comment.body, '##')
+                );
+                
+                justificationFound = authorComments.length > 0;
+                console.log(`Justification found in comments: ${justificationFound}`);
+              }
+              
+              if (!justificationFound) {
+                console.log('❌ FAILURE: PR author opted-out of the E2E test suite update requirement, but no justification was found in PR description or comments');
                 checkResult = {
                   status: 'failure',
-                  reason: 'PR author opted-out of the E2E test suite update requirement, but no justification comment was found',
+                  reason: 'PR author opted-out of the E2E test suite update requirement, but no justification was found in PR description or comments',
                   needsComment: true,
                   commentType: 'missing_justification'
                 };
               } else {
-                console.log(`Found justification comment from PR author`);
-                console.log('✅ SUCCESS: PR author opted-out of the E2E test suite update requirement and provided a justification comment');
+                console.log(`Found justification from PR author`);
+                console.log('✅ SUCCESS: PR author opted-out of the E2E test suite update requirement and provided a justification');
                 checkResult = {
                   status: 'success',
-                  reason: 'PR author opted-out of the E2E test suite update requirement and provided a justification comment',
+                  reason: 'PR author opted-out of the E2E test suite update requirement and provided a justification',
                   needsComment: false,
                   commentType: ''
                 };
