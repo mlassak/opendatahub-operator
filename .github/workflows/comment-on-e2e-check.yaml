@@ -11,7 +11,6 @@ permissions:
 
 jobs:
   download-artifact-data:
-    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
     runs-on: ubuntu-latest
     outputs:
       pr_number: ${{ steps.artifact-data.outputs.pr_number }}
@@ -92,6 +91,7 @@ jobs:
 
             **For more info, please refer to:** [workflow run details](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }})
           pr-number: ${{ needs.download-artifact-data.outputs.pr_number }}
+          comment_tag: e2e-check-missing-justification
 
       - name: Comment on PR - Missing E2E Tests case
         if: steps.parse-result.outputs.needs_comment == 'true' && steps.parse-result.outputs.comment_type == 'missing_e2e_tests'
@@ -116,3 +116,22 @@ jobs:
             - by default, every code-related PR should include an extension/update to the E2E test suite to cover the new changes
             - if the PR author is in doubt whether this requirement is applicable for their PR, please refer to the PR template for guidance about appropriate/inappropriate cases for opting-out
           pr-number: ${{ needs.download-artifact-data.outputs.pr_number }}
+          comment_tag: e2e-check-missing-tests
+
+      - name: Clean up error comments when check passes
+        if: steps.parse-result.outputs.needs_comment == 'false' || github.event.workflow_run.conclusion == 'success'
+        uses: thollander/actions-comment-pull-request@v3.0.1
+        with:
+          message: ''
+          pr-number: ${{ needs.download-artifact-data.outputs.pr_number }}
+          comment_tag: e2e-check-missing-justification
+          mode: delete
+
+      - name: Clean up error comments when check passes
+        if: steps.parse-result.outputs.needs_comment == 'false' || github.event.workflow_run.conclusion == 'success'
+        uses: thollander/actions-comment-pull-request@v3.0.1
+        with:
+          message: ''
+          pr-number: ${{ needs.download-artifact-data.outputs.pr_number }}
+          comment_tag: e2e-check-missing-tests
+          mode: delete
