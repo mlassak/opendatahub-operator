@@ -34,7 +34,11 @@ When bringing new changes to the operator code, such changes are by default requ
 
 To opt-out of this requirement:
 1. **Please inspect the [opt-out guidelines](https://github.com/opendatahub-io/opendatahub-operator/blob/main/docs/e2e-update-requirement-guidelines.md)**, to determine if the nature of the PR changes allows for skipping this requirement
-2. If opt-out is applicable, create opt-out justification PR comment
-   - start the comment with `## E2E update requirement opt-out justification:` title, and provide a short summary of reasons for opting-out of this requirement
-3. Edit this PR description by checking the checkbox below:
+2. If opt-out is applicable, provide justification in the section below OR as a PR comment
+3. Check the checkbox below:
 - [ ] Skip requirement to update E2E test suite for this PR
+
+#### E2E update requirement opt-out justification:
+<!--- If you checked the box above, please provide a short summary of reasons for opting-out of this requirement -->
+<!--- This section can be left empty if you're not opting out of the E2E requirement -->
+<!--- Alternatively, you can provide this justification as a comment with the same title format -->
