@@ -11,7 +11,6 @@ permissions:
 
 jobs:
   download-artifact-data:
-    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
     runs-on: ubuntu-latest
     outputs:
       pr_number: ${{ steps.artifact-data.outputs.pr_number }}
@@ -84,14 +83,22 @@ jobs:
           message: |
             ## ❌ E2E Update Requirement Check Failed
 
-            You have checked the "Skip requirement to update E2E test suite for this PR" checkbox, but no justification comment by the PR author was found.
+            You have checked the "Skip requirement to update E2E test suite for this PR" checkbox, but no justification was found in the PR description or comments.
 
-            **Actions required from the PR author:**
-            1. Please add a comment to this PR explaining why e2e tests are not needed for this change. The skip justification comment is **required** to start with `## E2E update requirement opt-out justification:` title, and include a short summary of reasons for opting-out of this requirement
-            2. To re-trigger the check after adding the justification comment, edit the PR description in a non-disruptive way (for example, by adding a new line at the end) and save the changes. This event will trigger the check, and if the justification comment is present and in the expected format, it should pass.
+            **Actions required from the PR author (choose one option):**
+            
+            **Option 1 - Add justification to PR description:**
+            1. Edit the PR description and add your justification in the "E2E update requirement opt-out justification:" section
+            2. Save the changes - this will automatically re-trigger the check
+            
+            **Option 2 - Add justification as a comment:**
+            1. Add a comment to this PR explaining why e2e tests are not needed for this change
+            2. The comment **must** start with `## E2E update requirement opt-out justification:` title, followed by a short summary of reasons for opting-out
+            3. After adding the comment, edit the PR description in a non-disruptive way (e.g., add a new line) and save to re-trigger the check
 
             **For more info, please refer to:** [workflow run details](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }})
           pr-number: ${{ needs.download-artifact-data.outputs.pr_number }}
+          comment-tag: e2e-check-missing-justification
 
       - name: Comment on PR - Missing E2E Tests case
         if: steps.parse-result.outputs.needs_comment == 'true' && steps.parse-result.outputs.comment_type == 'missing_e2e_tests'
@@ -106,8 +113,8 @@ jobs:
             1. Add or update e2e tests relevant to the PR changes in the `tests/e2e/` directory, OR
             2. Evaluate the possibility of opting-out of this requirement:
                1. Inspect the [opt-out guidelines](https://github.com/opendatahub-io/opendatahub-operator/blob/main/docs/e2e-update-requirement-guidelines.md), to determine if the nature of the PR changes allows for skipping this requirement
-               2. If opt-out is applicable, create a justification comment explaining why e2e tests are not needed for this change. This justification comment is required to start with `## E2E update requirement opt-out justification:` title, and include a short summary of reasons for opting-out of this requirement
-               3. Edit the PR description by checking the "Skip requirement to update E2E test suite for this PR" checkbox and save the changes. This event will trigger the check again, and if the justification comment is present and in the expected format, it should pass.
+               2. If opt-out is applicable, provide justification either in the PR description ("E2E update requirement opt-out justification:" section) OR as a comment (starting with `## E2E update requirement opt-out justification:` title)
+               3. Edit the PR description by checking the "Skip requirement to update E2E test suite for this PR" checkbox. This event will trigger the check again, and if the justification is present in either location, it should pass.
 
             **For more info, please refer to:** [workflow run details](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }})
 
@@ -116,3 +123,22 @@ jobs:
             - by default, every code-related PR should include an extension/update to the E2E test suite to cover the new changes
             - if the PR author is in doubt whether this requirement is applicable for their PR, please refer to the PR template for guidance about appropriate/inappropriate cases for opting-out
           pr-number: ${{ needs.download-artifact-data.outputs.pr_number }}
+          comment-tag: e2e-check-missing-tests
+
+      - name: Clean up error comments when check passes
+        if: steps.parse-result.outputs.needs_comment == 'false' || github.event.workflow_run.conclusion == 'success'
+        uses: thollander/actions-comment-pull-request@v3.0.1
+        with:
+          pr-number: ${{ needs.download-artifact-data.outputs.pr_number }}
+          comment-tag: e2e-check-missing-justification
+          mode: delete
+          create-if-not-exists: false
+
+      - name: Clean up error comments when check passes
+        if: steps.parse-result.outputs.needs_comment == 'false' || github.event.workflow_run.conclusion == 'success'
+        uses: thollander/actions-comment-pull-request@v3.0.1
+        with:
+          pr-number: ${{ needs.download-artifact-data.outputs.pr_number }}
+          comment-tag: e2e-check-missing-tests
+          mode: delete
+          create-if-not-exists: false
