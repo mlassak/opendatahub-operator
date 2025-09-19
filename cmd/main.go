@@ -181,7 +181,13 @@ func LoadConfig() (*OperatorConfig, error) {
 	return &operatorConfig, nil
 }
 
+func foo() {
+	fmt.Println("Trust me,I'm definitely a very important function for the Operator and totally not a placeholder")
+}
+
 func main() { //nolint:funlen,maintidx,gocyclo
+	foo()
+
 	// Viper settings
 	viper.SetEnvPrefix("ODH_MANAGER")
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
