@@ -1,0 +1,14 @@
+Summary
+The operator in RHAII currently reuses the full opendatahub-operator ClusterRole for its RBAC permissions. Since RHAII runs in a reduced mode (KServe-only), it does not need the full set of permissions granted to the main operator. This spike aims to identify the minimum required RBAC permissions for the RHAII deployment and propose a scoped-down ClusterRole.
+
+Acceptance Criteria
+Required outcomes of the ticket:
+- Identify which controllers and reconcilers are active in RHAII mode (KServe and its dependencies)
+- Map each RBAC rule to the controller/component that requires it
+- Produce a proposed minimal ClusterRole for the RHAII operator covering only the required permissions, running a runtime validation
+- Provide a recommendation on whether to maintain a separate ClusterRole or generate it dynamically
+
+Reference
+- RHAII deploy targets: make deploy-rhaii, make deploy-rhaii-local, make undeploy-rhaii
+- Current RBAC definitions: config/rbac/ directory
+- RHAII-specific manifests: config/rhaii/ directory
