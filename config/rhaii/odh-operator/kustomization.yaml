@@ -6,8 +6,7 @@ namePrefix: opendatahub-operator-
 
 resources:
 - ../crd
-# TODO: here we should use specific rhaii only RBAC rules
-- ../../rbac
+- ../rbac
 - ../../manager
 - ../certmanager
 

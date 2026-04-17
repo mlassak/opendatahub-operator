@@ -308,6 +308,91 @@ To test the **proposed minimal ClusterRole** from `rhaii-rbac-analysis.md` Secti
 
 ---
 
+## Step 11: Additional lifecycle tests
+
+After the minimal ClusterRole is applied and stable, run these additional tests to
+exercise code paths beyond the initial deployment.
+
+### 11a: Delete and recreate KServe CR
+
+Tests GC (garbage collection of all owned resources), finalizer removal, and full
+re-provisioning under the minimal role:
+
+```bash
+kubectl delete kserve default-kserve
+
+# Verify all owned resources are cleaned up
+kubectl get kserve
+kubectl -n opendatahub get all
+
+# Recreate
+kubectl apply -f config/rhaii/samples/kserve.yaml
+
+# Wait and verify
+kubectl get kserve default-kserve \
+  -o jsonpath='{range .status.conditions[*]}{.type}{"\t"}{.status}{"\n"}{end}'
+```
+
+Check for RBAC errors (Step 8). The GC action runs `SelfSubjectRulesReview` and
+deletes resources across the cluster using the dynamic client — this exercises
+permissions that steady-state reconciliation does not.
+
+### 11b: Create an LLMInferenceService
+
+Tests the serving webhook (`connection-llmisvc.opendatahub.io`) under the minimal
+role. The webhook runs in-process in the operator and may make API calls during
+admission:
+
+```bash
+kubectl create namespace test-inference
+
+kubectl apply -f - <<'EOF'
+apiVersion: serving.kserve.io/v1alpha1
+kind: LLMInferenceService
+metadata:
+  name: test-llm
+  namespace: test-inference
+spec:
+  model:
+    name: test-model
+    uri: "pvc://test/model"
+EOF
+```
+
+Verify the resource was created (webhook didn't reject it), then check for RBAC
+errors (Step 8). Clean up:
+
+```bash
+kubectl delete llminferenceservice test-llm -n test-inference
+kubectl delete namespace test-inference
+```
+
+### 11c: Mutate KServe CR spec
+
+Tests re-reconciliation with resource generation (`rr.Generated=true`), which
+triggers the full action pipeline including GC. This is a different code path from
+delete/recreate — it exercises in-place updates and stale resource detection:
+
+```bash
+# Change the raw deployment service config
+kubectl patch kserve default-kserve --type=merge \
+  -p '{"spec":{"rawDeploymentServiceConfig":"Headed"}}'
+
+# Wait and verify
+sleep 15
+kubectl get kserve default-kserve \
+  -o jsonpath='{range .status.conditions[*]}{.type}{"\t"}{.status}{"\n"}{end}'
+```
+
+Check for RBAC errors (Step 8). Optionally revert the change:
+
+```bash
+kubectl patch kserve default-kserve --type=merge \
+  -p '{"spec":{"rawDeploymentServiceConfig":"Headless"}}'
+```
+
+---
+
 ## Cleanup
 
 ```bash
@@ -332,6 +417,6 @@ make undeploy-rhaii
 
 - **On KinD, some dependencies may not fully start** -- e.g., the sail-operator and cert-manager images may not be pullable without pull secrets or may have platform-specific issues. This is expected. The key validation is whether the **RBAC allows the controller to perform its API calls** without `Forbidden` errors, not whether the deployed operators themselves become healthy.
 
-- **The GC action uses `SelfSubjectRulesReview`** (Gap 1 from the gap analysis). If you don't include `authorization.k8s.io/selfsubjectrulesreviews` with `create` verb in your scoped-down role, you'll see errors on every reconciliation cycle after the first deployment.
+- **`SelfSubjectRulesReview` does not need an explicit RBAC rule.** Kubernetes implicitly allows any authenticated identity to create self-subject reviews. The GC action uses this to discover deletable resources, and it works without a ClusterRole entry.
 
-- **The HardwareProfile webhook is active when KServe is enabled** (Gap 2). If you exclude `infrastructure.opendatahub.io/hardwareprofiles`, the webhook will fail when any InferenceService or Notebook with a hardware profile annotation is created/updated.
+- **HardwareProfile permissions are not needed on xKS.** The HardwareProfile CRD is not deployed in RHAII, and the `MutatingWebhookConfiguration` does not route to the HardwareProfile handler. The webhook path is registered in-process but never invoked.

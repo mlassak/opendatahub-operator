@@ -6,8 +6,7 @@ namespace: redhat-ods-operator
 resources:
 - ../../crd
 - ../certmanager
-# TODO: here we should use specific rhaii only RBAC rules
-- ../../../rhoai/rbac
+- ../../rbac
 - ../../../rhoai/manager
 
 patches:
