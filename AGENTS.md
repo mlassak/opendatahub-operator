@@ -254,7 +254,7 @@ They complement the org-wide security review configuration and encode repo-speci
 ### RBAC and Controller Tracing
 
 - When reviewing changes to `pkg/` that add new `client.Client` operations (`Get`, `List`, `Create`, `Update`, `Delete`, `Patch`), **trace every calling controller** and verify its `kubebuilder_rbac.go` has a matching `+kubebuilder:rbac` marker for the new resource.
-- RBAC markers live in `kubebuilder_rbac.go` files **only for top-level controllers**: `dscinitialization`, `datasciencecluster`, `gateway`, and `cloudmanager/*`. Component controllers under `internal/controller/components/` use codegen — **DO NOT flag the absence of `kubebuilder_rbac.go` in component controller directories**.
+- RBAC markers live in `kubebuilder_rbac.go` files across the codebase: top-level controllers (`dscinitialization`, `datasciencecluster`, `gateway`, `cloudmanager/*`), shared operator framework (`internal/controller/rbac/`), and per-component controllers (`internal/controller/components/*/`). Component-specific RBAC rules belong in the component's own `kubebuilder_rbac.go`, not in the DSC file. Shared framework rules used by all deployment modes (including RHAII) belong in `internal/controller/rbac/`.
 - When a PR modifies `+kubebuilder:rbac` markers, verify that `config/rbac/role.yaml` was regenerated (`make manifests`). If the generated diff is not included or mentioned, flag it.
 - **DO NOT** suggest adding RBAC markers to `pkg/` helper files. Markers belong on the controller that calls the helper, not the helper itself.
 

@@ -282,13 +282,22 @@ endif
 	@$(call add-crd-to-kustomization,config/rhaii/crd/bases)
 	@# Generate shared rhaii webhook manifests with only KServe connection webhooks
 	@$(YQ) eval 'select(.kind == "MutatingWebhookConfiguration") | .webhooks = [.webhooks[] | select(.name == "connection-isvc.opendatahub.io" or .name == "connection-llmisvc.opendatahub.io")]' $(CONFIG_DIR)/webhook/manifests.yaml > config/rhaii/webhook/manifests.yaml
-MANIFEST_GENERATED_FILES = config/crd/bases config/rhoai/crd/bases config/rhaii/crd/bases config/crd/external config/rhoai/crd/external config/rbac/role.yaml config/rhoai/rbac/role.yaml config/webhook/manifests.yaml config/rhoai/webhook/manifests.yaml config/rhaii/webhook/manifests.yaml
+MANIFEST_GENERATED_FILES = config/crd/bases config/rhoai/crd/bases config/rhaii/crd/bases config/crd/external config/rhoai/crd/external config/rbac/role.yaml config/rhoai/rbac/role.yaml config/rhaii/rbac/role.yaml config/webhook/manifests.yaml config/rhoai/webhook/manifests.yaml config/rhaii/webhook/manifests.yaml
+
+# Packages scanned for RHAII RBAC generation: shared operator framework + enabled components.
+# To add a component to RHAII mode, append its controller path here.
+rhaii-rbac-paths := {./internal/controller/rbac/...,./internal/controller/components/kserve/...}
+
+.PHONY: manifests-rhaii
+manifests-rhaii: controller-gen ## Generate scoped RBAC ClusterRole for RHAII deployment mode.
+	$(CONTROLLER_GEN) rbac:roleName=controller-manager-role paths="$(rhaii-rbac-paths)" output:rbac:artifacts:config=config/rhaii/rbac
 
 .PHONY: manifests-all
 manifests-all:
 	$(MAKE) manifests
 	$(MAKE) manifests ODH_PLATFORM_TYPE=rhoai
 	$(MAKE) manifests-ccm
+	$(MAKE) manifests-rhaii
 
 .PHONY: clean-manifests
 clean-manifests: ## Remove generated manifest files (CRDs, RBAC, webhooks) for all variants.

@@ -1,88 +1,341 @@
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: controller-manager-role
 rules:
-# ============================================================
-# Operator Framework (controller-runtime, reconciler, webhooks)
-# ============================================================
-- apiGroups: [""]
-  resources: [configmaps, configmaps/status]
-  verbs: [get, create, watch, patch, delete, list, update]
-- apiGroups: [""]
-  resources: [secrets, secrets/finalizers]
-  verbs: [create, delete, get, list, update, watch, patch]
-- apiGroups: [""]
-  resources: [services, services/finalizers]
-  verbs: [create, delete, get, list, update, watch, patch]
-- apiGroups: [""]
-  resources: [serviceaccounts]
-  verbs: [get, list, watch, create, update, patch, delete]
-- apiGroups: [""]
-  resources: [namespaces, namespaces/finalizers]
-  verbs: [get, create, patch, delete, watch, update, list]
-- apiGroups: [""]
-  resources: [events]
-  verbs: [get, create, watch, update, list, patch, delete]
-- apiGroups: [""]
-  resources: [pods]
-  verbs: [get, list, watch, create, update, patch, delete]
-
-- apiGroups: [events.k8s.io]
-  resources: [events]
-  verbs: [list, watch, patch, delete, get]
-
-- apiGroups: [apps]
-  resources: [deployments, deployments/finalizers]
-  verbs: [get, list, watch, create, update, patch, delete]
-- apiGroups: [apps]
-  resources: [replicasets]
-  verbs: [get, list, watch]
-
-- apiGroups: [admissionregistration.k8s.io]
-  resources: [mutatingwebhookconfigurations, validatingwebhookconfigurations]
-  verbs: [create, delete, get, list, patch, update, watch]
-- apiGroups: [admissionregistration.k8s.io]
-  resources: [validatingadmissionpolicies, validatingadmissionpolicybindings]
-  verbs: [get, create, delete, update, watch, list, patch]
-
-- apiGroups: [apiextensions.k8s.io]
-  resources: [customresourcedefinitions]
-  verbs: [get, list, watch, create, patch, delete, update]
-
-- apiGroups: [rbac.authorization.k8s.io]
-  resources: [roles, rolebindings, clusterroles, clusterrolebindings]
-  verbs: ["*"]
-
-- apiGroups: [coordination.k8s.io]
-  resources: [leases]
-  verbs: [get, list, watch, create, update, patch, delete]
-
-- apiGroups: [cert-manager.io]
-  resources: [issuers]
-  verbs: [create, patch]
-- apiGroups: [cert-manager.io]
-  resources: [certificates]
-  verbs: [get, list, watch, create, update, patch, delete]
-
-- apiGroups: [networking.k8s.io]
-  resources: [networkpolicies]
-  verbs: [get, create, list, watch, delete, update, patch]
-
-# ============================================================
-# KServe Component
-# ============================================================
-- apiGroups: [components.platform.opendatahub.io]
-  resources: [kserves]
-  verbs: [get, list, watch, create, update, patch, delete]
-- apiGroups: [components.platform.opendatahub.io]
-  resources: [kserves/status]
-  verbs: [get, update, patch]
-- apiGroups: [components.platform.opendatahub.io]
-  resources: [kserves/finalizers]
-  verbs: [update]
-
-- apiGroups: [serving.kserve.io]
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - deployments
+  - events
+  - namespaces
+  - pods
+  - secrets
+  - secrets/finalizers
+  - serviceaccounts
+  - services
+  - services/finalizers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - configmaps/status
+  verbs:
+  - delete
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ""
+  resources:
+  - endpoints
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - namespaces/finalizers
+  verbs:
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - pods/exec
+  verbs:
+  - create
+- apiGroups:
+  - ""
+  resources:
+  - pods/log
+  verbs:
+  - get
+- apiGroups:
+  - '*'
+  resources:
+  - deployments
+  - services
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - '*'
+  - apps
+  - extensions
+  resources:
+  - replicasets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - admissionregistration.k8s.io
+  resources:
+  - mutatingwebhookconfigurations
+  - validatingadmissionpolicies
+  - validatingadmissionpolicybindings
+  - validatingwebhookconfigurations
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apiextensions.k8s.io
+  resources:
+  - customresourcedefinitions
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  - deployments/finalizers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - cert-manager.io
+  resources:
+  - certificates
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - cert-manager.io
+  resources:
+  - issuers
+  verbs:
+  - create
+  - patch
+- apiGroups:
+  - components.platform.opendatahub.io
+  resources:
+  - kserves
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - components.platform.opendatahub.io
+  resources:
+  - kserves/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - components.platform.opendatahub.io
+  resources:
+  - kserves/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - config.openshift.io
+  resources:
+  - ingresses
+  verbs:
+  - get
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - events.k8s.io
+  resources:
+  - events
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - watch
+- apiGroups:
+  - extensions
+  resources:
+  - deployments
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - inference.networking.k8s.io
+  resources:
+  - inferencepools
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - inference.networking.x-k8s.io
+  resources:
+  - inferencemodels
+  - inferencepools
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - keda.sh
+  resources:
+  - kedacontrollers
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - keda.sh
+  resources:
+  - triggerauthentications
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - kuadrant.io
+  resources:
+  - kuadrants
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - kubeflow.org
+  resources:
+  - notebooks
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - metrics.k8s.io
+  resources:
+  - nodes
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - monitoring.coreos.com
+  resources:
+  - servicemonitors
+  verbs:
+  - create
+  - delete
+  - deletecollection
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses
+  - networkpolicies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - operator.openshift.io
+  resources:
+  - leaderworkersetoperators
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - clusterrolebindings
+  - clusterroles
+  - rolebindings
+  - roles
+  verbs:
+  - '*'
+- apiGroups:
+  - serving.kserve.io
   resources:
   - clusterservingruntimes
   - clusterservingruntimes/finalizers
@@ -96,8 +349,16 @@ rules:
   - servingruntimes
   - servingruntimes/finalizers
   - trainedmodels
-  verbs: [create, delete, get, list, patch, update, watch]
-- apiGroups: [serving.kserve.io]
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - serving.kserve.io
   resources:
   - clusterservingruntimes/status
   - clusterstoragecontainers/status
@@ -105,36 +366,39 @@ rules:
   - inferenceservices/status
   - predictors/status
   - trainedmodels/status
-  verbs: [delete, get, patch, update]
-- apiGroups: [serving.kserve.io]
-  resources: [llminferenceserviceconfigs/status, predictors/finalizers, servingruntimes/status]
-  verbs: [get, patch, update]
-- apiGroups: [serving.kserve.io]
-  resources: [llminferenceservices, llminferenceservices/status]
-  verbs: [get, list, watch]
-
-- apiGroups: [inference.networking.x-k8s.io]
-  resources: [inferencepools, inferencemodels]
-  verbs: [get, list, watch]
-- apiGroups: [inference.networking.k8s.io]
-  resources: [inferencepools]
-  verbs: [get, list, watch]
-
-- apiGroups: [keda.sh]
-  resources: [kedacontrollers]
-  verbs: [get, list, watch]
-- apiGroups: [keda.sh]
-  resources: [triggerauthentications]
-  verbs: [create, delete, get, list, patch, update, watch]
-
-- apiGroups: [metrics.k8s.io]
-  resources: [pods, nodes]
-  verbs: [get, list, watch]
-
-- apiGroups: [operator.openshift.io]
-  resources: [leaderworkersetoperators]
-  verbs: [get, list, watch]
-
-- apiGroups: [monitoring.coreos.com]
-  resources: [servicemonitors]
-  verbs: [get, create, delete, update, watch, list, patch]
+  verbs:
+  - delete
+  - get
+  - patch
+  - update
+- apiGroups:
+  - serving.kserve.io
+  resources:
+  - llminferenceserviceconfigs/status
+  - predictors/finalizers
+  - servingruntimes/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - serving.kserve.io
+  resources:
+  - llminferenceservices
+  - llminferenceservices/status
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - template.openshift.io
+  resources:
+  - templates
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
