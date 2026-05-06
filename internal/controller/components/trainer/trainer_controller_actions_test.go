@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	ofapiv2 "github.com/operator-framework/api/pkg/operators/v2"
-	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
@@ -45,63 +44,6 @@ func TestCheckPreConditions_Managed_JobSetOperatorNotInstalled(t *testing.T) {
 	g.Expect(err).ShouldNot(HaveOccurred())
 	g.Expect(result.Pass).To(BeFalse())
 	g.Expect(result.Message).To(ContainSubstring(status.JobSetOperatorNotInstalledMessage))
-}
-
-func TestCheckJobSetCRD_NotInstalled(t *testing.T) {
-	ctx := t.Context()
-	g := NewWithT(t)
-
-	cli, err := fakeclient.New()
-	g.Expect(err).ShouldNot(HaveOccurred())
-
-	trainer := componentApi.Trainer{
-		Spec: componentApi.TrainerSpec{},
-	}
-
-	rr := types.ReconciliationRequest{
-		Client:     cli,
-		Instance:   &trainer,
-		Conditions: conditions.NewManager(&trainer, status.ConditionTypeReady),
-	}
-
-	err = checkJobSetCRD(ctx, &rr)
-	g.Expect(err).Should(HaveOccurred())
-	g.Expect(err).To(MatchError(ContainSubstring(status.JobSetCRDMissingMessage)))
-}
-
-func TestCheckJobSetCRD_Installed(t *testing.T) {
-	ctx := t.Context()
-	g := NewWithT(t)
-
-	fakeSchema, err := scheme.New()
-	g.Expect(err).ShouldNot(HaveOccurred())
-
-	fakeSchema.AddKnownTypeWithName(gvk.JobSetv1alpha2, &unstructured.Unstructured{})
-
-	jobSetCRD := &apiextensionsv1.CustomResourceDefinition{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "jobsets.jobset.x-k8s.io",
-		},
-	}
-
-	cli, err := fakeclient.New(
-		fakeclient.WithScheme(fakeSchema),
-		fakeclient.WithObjects(jobSetCRD),
-	)
-	g.Expect(err).ShouldNot(HaveOccurred())
-
-	trainer := componentApi.Trainer{
-		Spec: componentApi.TrainerSpec{},
-	}
-
-	rr := types.ReconciliationRequest{
-		Client:     cli,
-		Instance:   &trainer,
-		Conditions: conditions.NewManager(&trainer, status.ConditionTypeReady),
-	}
-
-	err = checkJobSetCRD(ctx, &rr)
-	g.Expect(err).ShouldNot(HaveOccurred())
 }
 
 func TestCheckPreConditions_JobSetOperatorCRNotFound(t *testing.T) {

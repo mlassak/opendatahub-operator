@@ -79,8 +79,8 @@ func (s *componentHandler) NewComponentReconciler(ctx context.Context, mgr ctrl.
 			CRName:      jobSetOperatorCRName,
 			Filter:      jobSetConditionFilter,
 		})).
+		WithPreCondition(precondition.MonitorCRD(gvk.JobSetv1alpha2, precondition.WithStopReconciliation())).
 		WithAction(initialize).
-		WithAction(checkJobSetCRD).
 		WithAction(releases.NewAction()).
 		WithAction(kustomize.NewAction()).
 		WithAction(deploy.NewAction(
