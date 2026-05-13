@@ -125,6 +125,7 @@ func TestCheckPreConditions_Success(t *testing.T) {
 	result, err := checkPreConditions(ctx, &rr)
 	g.Expect(err).ShouldNot(HaveOccurred())
 	g.Expect(result.Pass).To(BeTrue())
+	g.Expect(result.Message).To(BeEmpty())
 }
 
 func TestJobSetConditionFilter(t *testing.T) {

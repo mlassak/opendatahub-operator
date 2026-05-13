@@ -18,12 +18,16 @@ import (
 func TestCustom_Defaults(t *testing.T) {
 	g := NewWithT(t)
 
-	pc := Custom(passingCheck)
+	rr := newRR(status.ConditionDependenciesAvailable)
+	shouldStop := RunAll(t.Context(), rr, []PreCondition{
+		Custom(passingCheck),
+	})
 
-	g.Expect(pc.check).NotTo(BeNil())
-	g.Expect(pc.conditionType).To(Equal(status.ConditionDependenciesAvailable))
-	g.Expect(pc.severity).To(Equal(common.ConditionSeverityError))
-	g.Expect(pc.stopReconciliation).To(BeFalse())
+	g.Expect(shouldStop).To(BeFalse())
+
+	got := rr.Conditions.GetCondition(status.ConditionDependenciesAvailable)
+	g.Expect(got).NotTo(BeNil())
+	g.Expect(got.Status).To(Equal(metav1.ConditionTrue))
 }
 
 func TestCustom_PassingCheck(t *testing.T) {
@@ -150,4 +154,35 @@ func TestCustom_AccessesInstance(t *testing.T) {
 	got := rr.Conditions.GetCondition(status.ConditionDependenciesAvailable)
 	g.Expect(got).NotTo(BeNil())
 	g.Expect(got.Status).To(Equal(metav1.ConditionTrue))
+}
+
+func TestCustom_NilCheck(t *testing.T) {
+	g := NewWithT(t)
+
+	rr := newRR(status.ConditionDependenciesAvailable)
+	shouldStop := RunAll(t.Context(), rr, []PreCondition{
+		Custom(nil),
+	})
+
+	g.Expect(shouldStop).To(BeFalse())
+
+	got := rr.Conditions.GetCondition(status.ConditionDependenciesAvailable)
+	g.Expect(got).NotTo(BeNil())
+	g.Expect(got.Status).To(Equal(metav1.ConditionUnknown))
+	g.Expect(got.Message).To(ContainSubstring("precondition check function is nil"))
+}
+
+func TestCustom_NilCheckWithStopReconciliation(t *testing.T) {
+	g := NewWithT(t)
+
+	rr := newRR(status.ConditionDependenciesAvailable)
+	shouldStop := RunAll(t.Context(), rr, []PreCondition{
+		Custom(nil, WithStopReconciliation()),
+	})
+
+	g.Expect(shouldStop).To(BeTrue())
+
+	got := rr.Conditions.GetCondition(status.ConditionDependenciesAvailable)
+	g.Expect(got).NotTo(BeNil())
+	g.Expect(got.Status).To(Equal(metav1.ConditionUnknown))
 }
