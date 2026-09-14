@@ -88,7 +88,7 @@ components:
   mlflowoperator:
     odh:
       repo: opendatahub-io/mlflow-operator
-      ref: main@4327e93d32aec7825f200abf1c250320717318a7
+      ref: main@4abf9eabe15727ba3a8c1c8d7d07e9d35b0dd5d7
       sourcePath: config
     rhoai:
       repo: red-hat-data-services/mlflow-operator
@@ -297,7 +297,7 @@ imageOverrides:
     tagTemplate: "{SHA}"
     odh:
       base: "quay.io/opendatahub/mlflow-operator"
-      digest: "sha256:fa684266f4b404d84e63e38520fcfc4a52c16d7b08d8d5b0485fa5e624ad10af"
+      digest: "sha256:df68ce6290274f246ab7510787587141ad3565eb616841638bbd518b108c810b"
     rhoai:
       base: "quay.io/rhoai/odh-mlflow-operator-rhel9"
       digest: "sha256:7e085f8fbe2d7afc4ea47a37c61d6742d5c6a881d6b1bf5312bb560b5989ec94"
